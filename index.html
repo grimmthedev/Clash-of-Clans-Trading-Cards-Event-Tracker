@@ -101,6 +101,15 @@
         .analysis-box h3 { margin-bottom: 10px; font-size: 16px; color: var(--text); }
         .analysis-box ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: #ccc; }
         
+        /* Desktop Collapsible Settings (Locked open, hides markers) */
+        .collapsible-box summary {
+            list-style: none;
+            pointer-events: none;
+        }
+        .collapsible-box summary::-webkit-details-marker {
+            display: none;
+        }
+
         /* Card Grids */
         .rarity-section {
             background-color: var(--bg-panel);
@@ -128,28 +137,31 @@
         .count-display { width: 24px; text-align: center; font-weight: bold; }
         .drop-rate { font-size: 14px; color: #aaa; font-weight: normal; margin-left: 10px; }
         
+        /* Desktop Search Item Base */
+        .search-item {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 5px;
+        }
+
         /* --- MOBILE RESPONSIVENESS FIXES --- */
         @media (max-width: 768px) {
-            /* Stack the title and timer vertically */
             .header-container {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 10px;
             }
 
-            /* Force panels to take up the full width of the phone instead of side-by-side */
             .analysis-panel, .inventory-panel {
                 min-width: 100%;
                 flex: 100%;
             }
 
-            /* Un-stick the analysis panel so it scrolls naturally on phones */
             .analysis-panel {
                 position: relative;
                 top: 0;
             }
 
-            /* Stack control buttons cleanly and remove the vertical divider */
             .top-controls {
                 flex-direction: column;
                 align-items: stretch;
@@ -163,20 +175,58 @@
                 gap: 10px;
             }
 
-            /* Make the search bar fluid so it doesn't break the layout */
+            /* Fix 1: iOS Input Zoom */
+            input, select {
+                font-size: 16px !important;
+            }
+
             #cardSearchInput {
                 width: 100% !important; 
             }
 
-            /* Shrink the card grid so 2 cards can fit side-by-side on a phone screen */
+            /* Fix 4: Flex Wrap for Search Results */
+            #cardSearchResults {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px 16px;
+                margin-top: 10px;
+            }
+            .search-item {
+                margin-right: 0;
+                margin-bottom: 0;
+            }
+
             .card-grid {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             }
 
-            /* Stack the card name and the + / - buttons to save horizontal space */
             .card-box {
                 flex-direction: column;
                 gap: 10px;
+            }
+
+            /* Fix 2: Larger Touch Targets */
+            .counter button {
+                padding: 10px 16px;
+                font-size: 16px;
+            }
+
+            /* Fix 3: Mobile Collapsible Analysis Dashboard styling */
+            .collapsible-box summary {
+                pointer-events: auto;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .collapsible-box summary::after {
+                content: '▼';
+                font-size: 12px;
+                color: #ccc;
+                margin-left: 10px;
+            }
+            .collapsible-box[open] summary::after {
+                content: '▲';
             }
         }
     </style>
@@ -209,7 +259,7 @@
     <div class="top-controls" style="padding: 10px 15px; margin-top: -10px;">
         <label>🔍 Search Card: </label>
         <input type="text" id="cardSearchInput" placeholder="Type card name..." oninput="searchCards()" style="width: 250px;">
-        <span id="cardSearchResults" style="margin-left: 15px; color: #ccc;"></span>
+        <div id="cardSearchResults" style="margin-left: 15px; color: #ccc;"></div>
     </div>
 
     <div class="layout">
@@ -218,27 +268,43 @@
             <h2>Analysis Dashboard</h2>
             
             <div class="analysis-box completion">
-                <h3 style="color: var(--purple);">🏆 The Completion Race</h3>
-                <p style="font-size: 12px; margin-top:0; color: #888;">Tracks who is closest to unlocking all 60 cards, including potential matches if trades are made.</p>
-                <ul id="completionList"></ul>
+                <details class="collapsible-box" open>
+                    <summary><h3 style="color: var(--purple); display: inline-block; margin-bottom: 0;">🏆 The Completion Race</h3></summary>
+                    <div style="margin-top: 10px;">
+                        <p style="font-size: 12px; margin-top:0; color: #888;">Tracks who is closest to unlocking all 60 cards, including potential matches if trades are made.</p>
+                        <ul id="completionList"></ul>
+                    </div>
+                </details>
             </div>
             
             <div class="analysis-box all-accounts">
-                <h3 style="color: var(--blue);">🟦 In All Accounts (Safe to Shop)</h3>
-                <p style="font-size: 12px; margin-top:0; color: #888;">All accounts have at least 1. Duplicates shown below can be safely spent in the game shop.</p>
-                <ul id="allAccountsList"></ul>
+                <details class="collapsible-box" open>
+                    <summary><h3 style="color: var(--blue); display: inline-block; margin-bottom: 0;">🟦 In All Accounts (Safe to Shop)</h3></summary>
+                    <div style="margin-top: 10px;">
+                        <p style="font-size: 12px; margin-top:0; color: #888;">All accounts have at least 1. Duplicates shown below can be safely spent in the game shop.</p>
+                        <ul id="allAccountsList"></ul>
+                    </div>
+                </details>
             </div>
 
             <div class="analysis-box trades">
-                <h3 style="color: var(--orange);">🔀 Trade Routes (Overlaps)</h3>
-                <p style="font-size: 12px; margin-top:0; color: #888;">Someone has duplicates, but another account has 0. Trade these!</p>
-                <ul id="tradeList"></ul>
+                <details class="collapsible-box" open>
+                    <summary><h3 style="color: var(--orange); display: inline-block; margin-bottom: 0;">🔀 Trade Routes (Overlaps)</h3></summary>
+                    <div style="margin-top: 10px;">
+                        <p style="font-size: 12px; margin-top:0; color: #888;">Someone has duplicates, but another account has 0. Trade these!</p>
+                        <ul id="tradeList"></ul>
+                    </div>
+                </details>
             </div>
 
             <div class="analysis-box missing">
-                <h3 style="color: var(--red);">❌ Missing Completely</h3>
-                <p style="font-size: 12px; margin-top:0; color: #888;">None of your accounts have pulled these cards yet.</p>
-                <ul id="missingList"></ul>
+                <details class="collapsible-box" open>
+                    <summary><h3 style="color: var(--red); display: inline-block; margin-bottom: 0;">❌ Missing Completely</h3></summary>
+                    <div style="margin-top: 10px;">
+                        <p style="font-size: 12px; margin-top:0; color: #888;">None of your accounts have pulled these cards yet.</p>
+                        <ul id="missingList"></ul>
+                    </div>
+                </details>
             </div>
         </div>
 
@@ -545,6 +611,7 @@
                 return;
             }
 
+            // Fix 4: Output structured divs rather than a single string separated by non-breaking spaces
             let resultHtml = '';
             matchedCards.forEach(card => {
                 let accountStrs = [];
@@ -556,9 +623,9 @@
                 });
                 
                 if (accountStrs.length > 0) {
-                    resultHtml += `<strong style="color:var(--orange)">${card}</strong> ➔ [ ${accountStrs.join(', ')} ] &nbsp;&nbsp;&nbsp;`;
+                    resultHtml += `<div class="search-item"><strong style="color:var(--orange)">${card}</strong> ➔ [ ${accountStrs.join(', ')} ]</div>`;
                 } else {
-                    resultHtml += `<strong style="color:var(--orange)">${card}</strong> ➔ <span style="color:#888;">(0 in all accounts)</span> &nbsp;&nbsp;&nbsp;`;
+                    resultHtml += `<div class="search-item"><strong style="color:var(--orange)">${card}</strong> ➔ <span style="color:#888;">(0 in all accounts)</span></div>`;
                 }
             });
 
@@ -575,6 +642,19 @@
                 document.getElementById('cardSearchResults').innerHTML = '';
             }
         }
+
+        // Fix 3: Dynamic toggling of the <details> 'open' attribute based on screen size
+        function initMobileCollapse() {
+            const detailsElements = document.querySelectorAll('.collapsible-box');
+            if (window.innerWidth <= 768) {
+                detailsElements.forEach(el => el.removeAttribute('open'));
+            } else {
+                detailsElements.forEach(el => el.setAttribute('open', ''));
+            }
+        }
+        
+        window.addEventListener('resize', initMobileCollapse);
+        window.addEventListener('DOMContentLoaded', initMobileCollapse);
 
         // Run on startup
         load();
