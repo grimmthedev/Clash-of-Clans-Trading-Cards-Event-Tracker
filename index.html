@@ -128,6 +128,57 @@
         .count-display { width: 24px; text-align: center; font-weight: bold; }
         .drop-rate { font-size: 14px; color: #aaa; font-weight: normal; margin-left: 10px; }
         
+        /* --- MOBILE RESPONSIVENESS FIXES --- */
+        @media (max-width: 768px) {
+            /* Stack the title and timer vertically */
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            /* Force panels to take up the full width of the phone instead of side-by-side */
+            .analysis-panel, .inventory-panel {
+                min-width: 100%;
+                flex: 100%;
+            }
+
+            /* Un-stick the analysis panel so it scrolls naturally on phones */
+            .analysis-panel {
+                position: relative;
+                top: 0;
+            }
+
+            /* Stack control buttons cleanly and remove the vertical divider */
+            .top-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .top-controls > div {
+                border-left: none !important;
+                padding-left: 0 !important;
+                margin-left: 0 !important;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            /* Make the search bar fluid so it doesn't break the layout */
+            #cardSearchInput {
+                width: 100% !important; 
+            }
+
+            /* Shrink the card grid so 2 cards can fit side-by-side on a phone screen */
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            /* Stack the card name and the + / - buttons to save horizontal space */
+            .card-box {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
 <body>
