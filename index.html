@@ -15,6 +15,7 @@
             --orange: #FF9800;
             --red: #F44336;
             --purple: #9C27B0;
+            --cyan: #00BCD4;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -97,6 +98,7 @@
         .analysis-box.completion { border-color: var(--purple); }
         .analysis-box.all-accounts { border-color: var(--blue); }
         .analysis-box.trades { border-color: var(--orange); }
+        .analysis-box.stuck { border-color: var(--cyan); }
         .analysis-box.missing { border-color: var(--red); }
         .analysis-box h3 { margin-bottom: 10px; font-size: 16px; color: var(--text); }
         .analysis-box ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: #ccc; }
@@ -281,7 +283,7 @@
                 <details class="collapsible-box" open>
                     <summary><h3 style="color: var(--blue); display: inline-block; margin-bottom: 0;">🟦 In All Accounts (Safe to Shop)</h3></summary>
                     <div style="margin-top: 10px;">
-                        <p style="font-size: 12px; margin-top:0; color: #888;">All accounts have at least 1. Duplicates shown below can be safely spent in the game shop.</p>
+                        <p style="font-size: 12px; margin-top:0; color: #888;">All accounts have at least 1. Requires 2+ duplicates (3 total) per the in-game trader's minimum before a copy is safe to spend.</p>
                         <ul id="allAccountsList"></ul>
                     </div>
                 </details>
@@ -293,6 +295,16 @@
                     <div style="margin-top: 10px;">
                         <p style="font-size: 12px; margin-top:0; color: #888;">Someone has duplicates, but another account has 0. Trade these!</p>
                         <ul id="tradeList"></ul>
+                    </div>
+                </details>
+            </div>
+
+            <div class="analysis-box stuck">
+                <details class="collapsible-box" open>
+                    <summary><h3 style="color: var(--cyan); display: inline-block; margin-bottom: 0;">🎯 Still Needed (No Dupes to Trade)</h3></summary>
+                    <div style="margin-top: 10px;">
+                        <p style="font-size: 12px; margin-top:0; color: #888;">At least one account is missing these, but no account has a spare copy to trade — you'll need to pull these yourself.</p>
+                        <ul id="stuckList"></ul>
                     </div>
                 </details>
             </div>
@@ -497,12 +509,14 @@
             let completionHtml = '';
             let allAccountsHtml = '';
             let tradesHtml = '';
+            let stuckHtml = '';
             let missingHtml = '';
             
             if (accounts.length === 0) {
                 document.getElementById('completionList').innerHTML = "<li>No accounts</li>";
                 document.getElementById('allAccountsList').innerHTML = "<li>No accounts</li>";
                 document.getElementById('tradeList').innerHTML = "<li>No accounts</li>";
+                document.getElementById('stuckList').innerHTML = "<li>No accounts</li>";
                 document.getElementById('missingList').innerHTML = "<li>No accounts</li>";
                 return;
             }
@@ -511,6 +525,10 @@
             const totalCards = allCards.length;
             let accountProgress = [];
             
+            // Minimum duplicates the in-game trader requires before a copy is spendable:
+            // 1 kept for the collection + 2 spare duplicates = 3 total owned.
+            const MIN_TOTAL_TO_SHOP = 3;
+
             allCards.forEach(card => {
                 let minCount = Infinity;
                 let maxCount = -1;
@@ -525,7 +543,7 @@
                     
                     if (count > 1) donors.push(acc);
                     if (count === 0) receivers.push(acc);
-                    if (count > 1) spenders.push(`${acc} (can spend ${count - 1})`);
+                    if (count >= MIN_TOTAL_TO_SHOP) spenders.push(`${acc} (can spend ${count - 1})`);
                 });
                 
                 if (minCount >= 1 && spenders.length > 0) {
@@ -534,6 +552,12 @@
                 
                 if (donors.length > 0 && receivers.length > 0) {
                     tradesHtml += `<li><strong>${card}:</strong> Trade from [ <span style="color:var(--orange)">${donors.join(', ')}</span> ] ➔ to [ <span style="color:#aaa">${receivers.join(', ')}</span> ]</li>`;
+                }
+
+                // Still needed but nobody has a spare to trade: at least one account is missing it,
+                // nobody has a duplicate, and it's not completely missing from every account.
+                if (receivers.length > 0 && donors.length === 0 && maxCount > 0) {
+                    stuckHtml += `<li><strong>${card}:</strong> Needed by [ <span style="color:#aaa">${receivers.join(', ')}</span> ] — no spare copies anywhere yet.</li>`;
                 }
                 
                 if (maxCount === 0) {
@@ -590,6 +614,7 @@
             document.getElementById('completionList').innerHTML = completionHtml || "<li>No data to track yet.</li>";
             document.getElementById('allAccountsList').innerHTML = allAccountsHtml || "<li>No shop fodder yet. (Keep pulling!)</li>";
             document.getElementById('tradeList').innerHTML = tradesHtml || "<li>No overlapping trades right now.</li>";
+            document.getElementById('stuckList').innerHTML = stuckHtml || "<li>Nothing stuck right now — every needed card has a spare somewhere.</li>";
             document.getElementById('missingList').innerHTML = missingHtml || "<li>You have found at least one of everything!</li>";
         }
 
